@@ -12,6 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@SpringBootTest(properties = "spring.docker.compose.skip.in-tests=false")
+@SpringBootTest(properties = {"spring.docker.compose.skip.in-tests=false", "demo.console.enabled=false"})
 public @interface IntegrationTest {
 }

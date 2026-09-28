@@ -7,12 +7,12 @@ Proof of concept of an authorization engine for a multi-tenant SaaS monolith (pe
 - **Level 1:** per-module access levels (none / read / write) with an optional organizational-area scope that includes all sub-areas.
 - **Level 2:** granular restrictions by entity type or category inside a module, extensible to other criteria.
 - Consumers are the development teams that build modules: they must get authorization without writing authorization logic.
-- The API is in-process (method calls), not REST. Web endpoints exist only for metrics and demos.
+- The API is in-process (method calls), not REST. There is no HTTP layer at all: the demo is an interactive console menu (`com.bukcase.demo`), disabled in tests with `demo.console.enabled=false`.
 - Tenancy is database-per-tenant: within a request, all data is already scoped to one tenant.
 
 ## Stack
 
-Java 21, Spring Boot 3.5, PostgreSQL 16, Flyway, Redis 7, Spring AOP, Actuator/Micrometer, Maven.
+Java 21, Spring Boot 3.5 (non-web), PostgreSQL 16, Flyway, Redis 7, Spring AOP, Micrometer, Maven.
 `compose.yaml` provides PostgreSQL and Redis; Spring Boot starts it automatically on run.
 
 ## Architecture rules

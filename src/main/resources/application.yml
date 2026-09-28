@@ -1,12 +1,13 @@
 spring:
   application:
     name: authz-poc
+  main:
+    banner-mode: off
   datasource:
     url: jdbc:postgresql://localhost:5432/authz
     username: authz
     password: authz
   jpa:
-    open-in-view: false
     show-sql: false
     properties:
       hibernate:
@@ -25,14 +26,19 @@ spring:
       lifecycle-management: start-only
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health,metrics,prometheus
   metrics:
     distribution:
       percentiles-histogram:
         authz.check: true
+
+logging:
+  level:
+    root: WARN
+    com.bukcase: INFO
+
+demo:
+  console:
+    enabled: true
 
 authz:
   version-refresh-ms: 500

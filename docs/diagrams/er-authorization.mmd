@@ -1,0 +1,53 @@
+erDiagram
+    direction LR
+    USERS ||--o{ USER_PROFILES : ""
+    PROFILES ||--o{ USER_PROFILES : ""
+    PROFILES ||--o{ PROFILE_GRANTS : "celdas"
+    PROFILE_GRANTS }o--|| AREAS : "eje X"
+    PROFILE_GRANTS }o--|| RESOURCES : "eje Y"
+    AREAS ||--o{ AREA_CLOSURE : "cierre"
+    RESOURCES ||--o{ RESOURCE_CLOSURE : "cierre"
+
+    USERS {
+        bigint id PK
+        varchar username UK
+        bigint employee_id FK
+    }
+    USER_PROFILES {
+        bigint user_id PK
+        bigint profile_id PK
+    }
+    PROFILES {
+        bigint id PK
+        varchar name UK
+        boolean is_admin
+        boolean is_system
+    }
+    PROFILE_GRANTS {
+        bigint id PK
+        bigint profile_id FK
+        bigint area_id FK
+        bigint resource_id FK
+        smallint access_level
+    }
+    AREAS {
+        bigint id PK
+        varchar name
+        bigint parent_id FK "self"
+    }
+    RESOURCES {
+        bigint id PK
+        varchar code UK
+        varchar name
+        bigint parent_id FK "self"
+    }
+    AREA_CLOSURE {
+        bigint ancestor_id PK
+        bigint descendant_id PK
+        int depth
+    }
+    RESOURCE_CLOSURE {
+        bigint ancestor_id PK
+        bigint descendant_id PK
+        int depth
+    }

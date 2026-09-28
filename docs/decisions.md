@@ -99,3 +99,9 @@ Running log of design decisions. Each entry records the choice, the reason, and 
 - Results (100k assets, p50 of `count(readable)`): company-wide 1,032 -> 24 ms; area-scoped 545 -> 14 ms; entity-scoped 822 -> 34 ms; synthetic user with ~20 random grants 514 -> 222 ms.
 - Known limitation: cost grows with the number of distinct (area, resource) groups a user has in one module, because each adds an `OR` branch. Realistic profiles have one to three. Next optimizations if needed: denormalized, indexed `area_id` on protected records; a precomputed set of visible areas per user and module.
 - The sample Assets module loads its associations with an `@EntityGraph` so the benchmark measures authorization, not N+1 loading.
+
+## D14. No HTTP layer: console demo instead of REST endpoints
+
+- The case requires the solution to talk to the rest of the application through in-code calls, not REST. The first demo exposed REST endpoints only as a test harness, which sent the wrong message.
+- The web starter and every controller were removed. The application runs as a plain JVM process and opens an interactive console menu that calls services and `Authorizer` directly, like any feature module would.
+- Metrics are still recorded in Micrometer and printed by the menu; in production they would be exported by the monolith's existing monitoring stack.

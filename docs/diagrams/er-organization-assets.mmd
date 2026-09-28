@@ -1,0 +1,42 @@
+erDiagram
+    direction LR
+    AREAS ||--o{ POSITIONS : ""
+    POSITIONS ||--o{ EMPLOYEES : ""
+    EMPLOYEES |o--o| USERS : ""
+    EMPLOYEES |o--o{ ASSETS : "asignado a"
+    ASSET_CATEGORIES ||--o{ ASSETS : ""
+    RESOURCES ||--o{ ASSET_CATEGORIES : "nodo del eje Y"
+
+    AREAS {
+        bigint id PK
+        bigint parent_id FK
+    }
+    POSITIONS {
+        bigint id PK
+        varchar name
+        bigint area_id FK
+    }
+    EMPLOYEES {
+        bigint id PK
+        varchar full_name
+        bigint position_id FK
+    }
+    USERS {
+        bigint id PK
+        bigint employee_id FK
+    }
+    RESOURCES {
+        bigint id PK
+        varchar code UK
+    }
+    ASSET_CATEGORIES {
+        bigint id PK
+        varchar name
+        bigint resource_id FK
+    }
+    ASSETS {
+        bigint id PK
+        varchar name
+        bigint category_id FK
+        bigint employee_id FK
+    }

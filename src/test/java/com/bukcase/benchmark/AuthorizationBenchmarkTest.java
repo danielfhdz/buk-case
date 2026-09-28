@@ -30,6 +30,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Tag("benchmark")
 @SpringBootTest(properties = {
         "spring.docker.compose.skip.in-tests=false",
+        "demo.console.enabled=false",
         "spring.datasource.hikari.schema=bench",
         "spring.flyway.default-schema=bench",
         "spring.flyway.schemas=bench",

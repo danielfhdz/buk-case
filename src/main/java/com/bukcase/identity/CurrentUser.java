@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 /**
  * Identity of the user executing the current unit of work, equivalent to {@code User::GetCurrent}.
- * Bound per thread: web requests bind it in {@link CurrentUserFilter}; async jobs store the
+ * Bound per thread by the authentication layer at the start of each request; async jobs store the
  * enqueuing user's id and wrap their execution in {@link #runAs(long, Supplier)}.
  */
 public final class CurrentUser {

@@ -15,7 +15,7 @@ Proof of concept of an authorization engine for a multi-tenant SaaS monolith:
 | PostgreSQL 16 | Relational database |
 | Flyway | Versioned schema migrations (explicit indexes) |
 | Redis 7 | Shared cache of compiled permissions |
-| Actuator / Micrometer | Authorization engine metrics |
+| Micrometer | Authorization engine metrics (shown in the console menu) |
 
 ## Requirements
 
@@ -30,31 +30,27 @@ Proof of concept of an authorization engine for a multi-tenant SaaS monolith:
 On startup Spring Boot starts PostgreSQL and Redis from `compose.yaml` and Flyway applies the migrations.
 They can also be started manually with `docker compose up -d`.
 
-Health check: `http://localhost:8080/actuator/health`
-
 ## Trying it out
 
-Every request identifies the user with the `X-User-Id` header (stand-in for the existing authentication).
+There is no HTTP server: the application runs as a plain JVM process and opens an interactive console
+menu. The menu is just another in-process consumer that calls the same services and `Authorizer`
+methods a feature module would call.
 
 | User id | Demo user | Profile |
 |---|---|---|
-| 1 | Laura | Administrator (everything) |
-| 2 | Andres | Commercial Management, read-only (assets, vacations, documents) |
-| 3 | Carolina | Vacations, write, North Sales only |
-| 4 | Pedro | Assets write and Documents read, whole company |
-| 5 | Jorge | Assets write, Computers and Phones only |
-| 7 | Elena | Complaints: Harassment and Discrimination |
-| 8 | Tomas | Complaints: Fraud |
-| 9 | Nicolas | No profile |
+| 1 | laura.general | Administrator (everything) |
+| 2 | andres.commercial | Commercial Management, read-only (assets, vacations, documents) |
+| 3 | carolina.north | Vacations, write, North Sales only |
+| 4 | pedro.assets | Assets write and Documents read, whole company |
+| 5 | jorge.it | Assets write, Computers and Phones only |
+| 7 | elena.compliance | Complaints: Harassment and Discrimination |
+| 8 | tomas.compliance | Complaints: Fraud |
+| 9 | nicolas.noaccess | No profile |
 
-```
-curl -H "X-User-Id: 5" http://localhost:8080/assets
-curl -H "X-User-Id: 3" http://localhost:8080/vacations
-curl -H "X-User-Id: 7" http://localhost:8080/complaints
-curl -H "X-User-Id: 5" http://localhost:8080/authz/me
-```
-
-Metrics: `/actuator/metrics/authz.check`, `authz.compile`, `authz.cache`, `authz.denied`.
+Menu actions: switch user, list assets / complaints / vacation requests, point checks (read/write) on an
+asset, approve a vacation request, show compiled permissions, administration (grant a cell, clone a profile
+to another area, try to remove the last administrator), run an async job as the current user, show metrics
+and toggle SQL logging to see the generated filters.
 
 ## Tests
 
@@ -87,8 +83,9 @@ com.bukcase
 │   └── admin      # Profile administration (invariant: always one administrator)
 ├── org            # Hierarchical areas and employees
 ├── identity       # Current user (equivalent to User::GetCurrent)
-└── modules        # Sample modules consuming the engine
+├── modules        # Sample modules consuming the engine
     ├── assets     # Asset Management
     ├── complaints # Whistleblowing Channel
-    └── vacations  # Vacations
+│   └── vacations  # Vacations
+└── demo           # Interactive console menu (in-process consumer, no HTTP)
 ```
