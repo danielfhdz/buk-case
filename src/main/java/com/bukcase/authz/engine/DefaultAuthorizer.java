@@ -4,13 +4,7 @@ import com.bukcase.authz.api.AccessDeniedException;
 import com.bukcase.authz.api.AccessLevel;
 import com.bukcase.authz.api.AuthorizationDescriptor;
 import com.bukcase.authz.api.Authorizer;
-import com.bukcase.authz.domain.AreaClosure;
-import com.bukcase.authz.domain.ProfileGrant;
-import com.bukcase.authz.domain.ResourceClosure;
-import com.bukcase.authz.domain.UserProfile;
 import com.bukcase.identity.CurrentUser;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +15,15 @@ public class DefaultAuthorizer implements Authorizer {
     private final TreeIndex trees;
     private final DescriptorRegistry descriptors;
     private final AuthorizationMetrics metrics;
+    private final ListFilterFactory listFilters;
 
     public DefaultAuthorizer(PermissionProvider permissions, TreeIndex trees, DescriptorRegistry descriptors,
-                             AuthorizationMetrics metrics) {
+                             AuthorizationMetrics metrics, ListFilterFactory listFilters) {
         this.permissions = permissions;
         this.trees = trees;
         this.descriptors = descriptors;
         this.metrics = metrics;
+        this.listFilters = listFilters;
     }
 
     @Override
@@ -84,40 +80,8 @@ public class DefaultAuthorizer implements Authorizer {
         return filter(entityType, AccessLevel.WRITE);
     }
 
-    /**
-     * Single correlated EXISTS over the user's grants and both closure tables, so the SQL shape
-     * does not grow with the number of grants.
-     */
     private <T> Specification<T> filter(Class<T> entityType, AccessLevel level) {
-        AuthorizationDescriptor<T> descriptor = descriptors.forType(entityType);
-        return (root, query, cb) -> {
-            long userId = CurrentUser.id();
-            CompiledPermissions compiled = permissions.forUser(userId);
-            if (compiled.admin()) {
-                return cb.conjunction();
-            }
-            if (!compiled.hasAny(level)) {
-                return cb.disjunction();
-            }
-
-            Subquery<Integer> grants = query.subquery(Integer.class);
-            Root<UserProfile> assignment = grants.from(UserProfile.class);
-            Root<ProfileGrant> grant = grants.from(ProfileGrant.class);
-            Root<AreaClosure> areaTree = grants.from(AreaClosure.class);
-            Root<ResourceClosure> resourceTree = grants.from(ResourceClosure.class);
-
-            grants.select(cb.literal(1)).where(
-                    cb.equal(assignment.get("userId"), userId),
-                    cb.equal(grant.get("profileId"), assignment.get("profileId")),
-                    cb.greaterThanOrEqualTo(grant.<Short>get("accessLevel"), level.code()),
-                    cb.equal(areaTree.get("ancestorId"), grant.get("areaId")),
-                    cb.equal(areaTree.get("descendantId"),
-                            cb.coalesce(descriptor.areaId(root, cb), trees.rootAreaId())),
-                    cb.equal(resourceTree.get("ancestorId"), grant.get("resourceId")),
-                    cb.equal(resourceTree.get("descendantId"), descriptor.resourceId(root, cb)));
-
-            return cb.exists(grants);
-        };
+        return listFilters.create(descriptors.forType(entityType), level);
     }
 
     private void deny(AccessLevel level, String resourceCode) {

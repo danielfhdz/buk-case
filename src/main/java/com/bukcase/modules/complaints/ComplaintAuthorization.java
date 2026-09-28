@@ -15,6 +15,11 @@ class ComplaintAuthorization implements AuthorizationDescriptor<Complaint> {
     }
 
     @Override
+    public String module() {
+        return "COMPLAINTS";
+    }
+
+    @Override
     public Expression<Long> areaId(Root<Complaint> root, CriteriaBuilder cb) {
         return root.<Long>get("areaId");
     }

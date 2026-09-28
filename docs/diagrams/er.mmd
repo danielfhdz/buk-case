@@ -1,0 +1,81 @@
+erDiagram
+    AREAS ||--o{ AREAS : "parent_id"
+    AREAS ||--o{ AREA_CLOSURE : "ancestor / descendant"
+    RESOURCES ||--o{ RESOURCES : "parent_id"
+    RESOURCES ||--o{ RESOURCE_CLOSURE : "ancestor / descendant"
+    AREAS ||--o{ POSITIONS : "belongs to"
+    POSITIONS ||--o{ EMPLOYEES : "holds"
+    EMPLOYEES |o--o| USERS : "is"
+    USERS ||--o{ USER_PROFILES : ""
+    PROFILES ||--o{ USER_PROFILES : ""
+    PROFILES ||--o{ PROFILE_GRANTS : "matrix cells"
+    AREAS ||--o{ PROFILE_GRANTS : "X axis"
+    RESOURCES ||--o{ PROFILE_GRANTS : "Y axis"
+    RESOURCES ||--o{ ASSET_CATEGORIES : "maps to"
+    ASSET_CATEGORIES ||--o{ ASSETS : ""
+    EMPLOYEES |o--o{ ASSETS : "assigned to"
+
+    AREAS {
+        bigint id PK
+        varchar name
+        bigint parent_id FK
+    }
+    AREA_CLOSURE {
+        bigint ancestor_id PK
+        bigint descendant_id PK
+        int depth
+    }
+    RESOURCES {
+        bigint id PK
+        varchar code UK
+        varchar name
+        bigint parent_id FK
+    }
+    RESOURCE_CLOSURE {
+        bigint ancestor_id PK
+        bigint descendant_id PK
+        int depth
+    }
+    PROFILES {
+        bigint id PK
+        varchar name UK
+        boolean is_admin
+        boolean is_system
+    }
+    PROFILE_GRANTS {
+        bigint id PK
+        bigint profile_id FK
+        bigint area_id FK
+        bigint resource_id FK
+        smallint access_level
+    }
+    USER_PROFILES {
+        bigint user_id PK
+        bigint profile_id PK
+    }
+    USERS {
+        bigint id PK
+        varchar username UK
+        bigint employee_id FK
+    }
+    EMPLOYEES {
+        bigint id PK
+        varchar full_name
+        bigint position_id FK
+    }
+    POSITIONS {
+        bigint id PK
+        varchar name
+        bigint area_id FK
+    }
+    ASSET_CATEGORIES {
+        bigint id PK
+        varchar name
+        bigint resource_id FK
+    }
+    ASSETS {
+        bigint id PK
+        varchar name
+        bigint category_id FK
+        bigint employee_id FK
+    }

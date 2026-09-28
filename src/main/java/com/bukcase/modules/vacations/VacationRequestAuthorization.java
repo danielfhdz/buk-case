@@ -28,6 +28,11 @@ class VacationRequestAuthorization implements AuthorizationDescriptor<VacationRe
     }
 
     @Override
+    public String module() {
+        return RESOURCE;
+    }
+
+    @Override
     public Expression<Long> areaId(Root<VacationRequest> root, CriteriaBuilder cb) {
         return root.join("employee").join("position").<Long>get("areaId");
     }

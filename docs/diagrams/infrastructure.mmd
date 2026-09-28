@@ -1,0 +1,17 @@
+flowchart LR
+    U["Usuarios / Jobs"] --> LB["Balanceador"]
+    subgraph Monolith["Monolito multi-tenant (N instancias)"]
+        I1["Instancia 1<br/>motor authz + L1"]
+        I2["Instancia 2<br/>motor authz + L1"]
+        W["Workers async<br/>(runAs usuario que encoló)"]
+    end
+    LB --> I1 & I2
+    subgraph Data["Capa de datos"]
+        R[("Redis<br/>permisos compilados<br/>+ versión por tenant")]
+        subgraph PG["PostgreSQL — una BD por tenant"]
+            T1[("Tenant A")]
+            T2[("Tenant B")]
+        end
+    end
+    I1 & I2 & W --> R
+    I1 & I2 & W --> PG

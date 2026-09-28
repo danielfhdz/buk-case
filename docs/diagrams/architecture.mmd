@@ -1,0 +1,25 @@
+flowchart TB
+    subgraph Modules["Módulos de negocio — 25+ equipos"]
+        direction LR
+        M1["Activos"] ~~~ M2["Denuncias"] ~~~ M3["Vacaciones"] ~~~ M4["Nuevo módulo<br/>(1 descriptor)"]
+    end
+    subgraph API["authz.api — único contrato visible para los equipos"]
+        direction LR
+        A1["Authorizer<br/>can · check · readable · writable"] ~~~ A2["@RequiresAccess"] ~~~ A3["AuthorizationDescriptor"]
+    end
+    subgraph Engine["authz.engine"]
+        direction LR
+        E2["ListFilterFactory<br/>filtro SQL de listados"] ~~~ E1["DefaultAuthorizer<br/>verificación puntual"] ~~~ E5["TreeIndex<br/>árboles en memoria"]
+    end
+    subgraph Cache["authz.cache — permisos compilados"]
+        direction LR
+        C1["L1 en proceso"] --> C2["Redis"] --> E4["PermissionCompiler"]
+    end
+    AD["authz.admin<br/>perfiles, celdas, asignaciones<br/>invariante: ≥1 administrador"]
+    DB[("PostgreSQL por tenant<br/>áreas · recursos · perfiles · celdas · cierres<br/>+ datos de los módulos")]
+
+    Modules --> API --> Engine --> Cache
+    E4 --> DB
+    Engine -- "SQL con subconsultas de cierre" --> DB
+    AD -- escribe --> DB
+    AD -- "incrementa versión después del commit" --> Cache

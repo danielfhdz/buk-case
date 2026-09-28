@@ -12,7 +12,6 @@ public class AuthorizationMetrics {
     private final MeterRegistry registry;
     private final Timer checkTimer;
     private final Timer compileTimer;
-    private final Counter cacheHits;
     private final Counter cacheMisses;
 
     public AuthorizationMetrics(MeterRegistry registry) {
@@ -25,8 +24,7 @@ public class AuthorizationMetrics {
                 .description("Time to compile a user's effective permissions on cache miss")
                 .publishPercentiles(0.5, 0.95, 0.99)
                 .register(registry);
-        this.cacheHits = Counter.builder("authz.cache").tag("result", "hit").register(registry);
-        this.cacheMisses = Counter.builder("authz.cache").tag("result", "miss").register(registry);
+        this.cacheMisses = Counter.builder("authz.cache").tag("result", "miss").tag("level", "none").register(registry);
     }
 
     public <T> T timeCheck(Supplier<T> check) {
@@ -37,8 +35,8 @@ public class AuthorizationMetrics {
         return compileTimer.record(compile);
     }
 
-    public void cacheHit() {
-        cacheHits.increment();
+    public void cacheHit(String level) {
+        registry.counter("authz.cache", "result", "hit", "level", level).increment();
     }
 
     public void cacheMiss() {

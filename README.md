@@ -32,6 +32,49 @@ They can also be started manually with `docker compose up -d`.
 
 Health check: `http://localhost:8080/actuator/health`
 
+## Trying it out
+
+Every request identifies the user with the `X-User-Id` header (stand-in for the existing authentication).
+
+| User id | Demo user | Profile |
+|---|---|---|
+| 1 | Laura | Administrator (everything) |
+| 2 | Andres | Commercial Management, read-only (assets, vacations, documents) |
+| 3 | Carolina | Vacations, write, North Sales only |
+| 4 | Pedro | Assets write and Documents read, whole company |
+| 5 | Jorge | Assets write, Computers and Phones only |
+| 7 | Elena | Complaints: Harassment and Discrimination |
+| 8 | Tomas | Complaints: Fraud |
+| 9 | Nicolas | No profile |
+
+```
+curl -H "X-User-Id: 5" http://localhost:8080/assets
+curl -H "X-User-Id: 3" http://localhost:8080/vacations
+curl -H "X-User-Id: 7" http://localhost:8080/complaints
+curl -H "X-User-Id: 5" http://localhost:8080/authz/me
+```
+
+Metrics: `/actuator/metrics/authz.check`, `authz.compile`, `authz.cache`, `authz.denied`.
+
+## Tests
+
+`AuthorizationScenariosTest` and `ProfileAdminServiceTest` run the business scenarios and administration rules against PostgreSQL and Redis (started from `compose.yaml` if needed).
+
+## Benchmark
+
+`AuthorizationBenchmarkTest` is tagged `benchmark` and excluded from the regular build; run it explicitly from the IDE. It generates ~1,000 areas, 50,000 employees, 100,000 assets and ~10,000 grants in a separate `bench` schema and writes the results to `target/benchmark-results.md`.
+
+| Measurement (p50) | Result |
+|---|---|
+| Point check, warm cache | ~6 µs |
+| Permission compilation on cache miss | ~4 ms |
+| `count(readable)` over 100k assets, realistic profiles | 14-34 ms |
+| First page of 50, realistic profiles | 25-50 ms |
+
+## Design decisions
+
+See [`docs/decisions.md`](docs/decisions.md) for every decision, the alternatives considered and the trade-offs.
+
 ## Structure
 
 ```

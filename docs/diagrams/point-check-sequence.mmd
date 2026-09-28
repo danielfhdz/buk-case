@@ -1,0 +1,28 @@
+sequenceDiagram
+    autonumber
+    participant S as Servicio del módulo
+    participant A as Authorizer
+    participant P as PermissionProvider
+    participant L1 as L1 en proceso
+    participant R as Redis
+    participant C as PermissionCompiler
+    participant DB as PostgreSQL
+    S->>A: check(WRITE, asset)
+    A->>P: forUser(CurrentUser.id())
+    P->>L1: get(versión, usuario)
+    alt acierto L1
+        L1-->>P: permisos compilados
+    else fallo L1
+        P->>R: GET authz:tenant:permissions:v{n}:user:{id}
+        alt acierto Redis
+            R-->>P: JSON
+        else fallo
+            P->>C: compile(usuario)
+            C->>DB: celdas de todos sus perfiles
+            C-->>P: unión (nivel más alto por celda)
+            P->>R: SET con TTL 1h
+        end
+        P->>L1: put
+    end
+    A->>A: ruta de ancestros del área y del recurso del registro (TreeIndex)
+    A-->>S: permitido / AccessDeniedException
